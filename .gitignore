@@ -1,8 +1,10 @@
 # Project specific
 data.csv
 data.json
+found.json
 data.xlsx
 ~$data.xlsx
+.cookies.json
 
 # Logs
 logs

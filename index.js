@@ -1,16 +1,14 @@
 const cheerio = require("cheerio");
-const axios = require("axios");
 const bluebird = require('bluebird');
 const cliProgress = require('cli-progress');
+const customers = require('cakebase')("./data.json");
+const found = require('cakebase')("./found.json");
+const puppeteer = require('puppeteer');
 
-const params = {
-    headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36"
-    },
-    timeout: 2000
-};
+const fs = require('fs');
 
-const customers = require('cakebase')("./test2.json");
+const cookiesString = fs.readFileSync('./cookies.json');
+const cookies = JSON.parse(cookiesString);
 
 async function getCustomers() {
     let customerList = await customers.get(obj => obj.title === '');
@@ -19,49 +17,57 @@ async function getCustomers() {
 }
 let customerList = getCustomers();
 
-// customerList.forEach(customer => {
-//     getTitle(customer).then((result) => {
-//         customers.update(obj => obj.customer === result.customer, { title: result.title, address: result.address });
-//     })
-// });
-
 const b1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
 
-async function makeRequests (lines) {
+async function makeRequests(lines) {
+    // const browser = await puppeteer.launch({headless: false});
+    const browser = await puppeteer.launch();
     await bluebird.map(
         lines,
         async (line) => {
-            const encodedString = encodeURI(line.searchString);
-            console.info(`https://www.google.com/search?q=${encodedString}&hl=en&gl=us`)
-            return axios.get(
-                `https://www.google.com/search?q=${encodedString}&hl=en&gl=us`,
-                params
-            ).then(res => {
-                b1.increment();
-                const $ = cheerio.load(res.data);
-                line.title = $(".SPZz6b > h2 > span").text()
-                line.address = $(".LrzXr").text()
-                customers.update(obj => obj.customer === line.customer, { title: line.title, address: line.address });
-            })
+            let alreadyDone = await found.get(obj => obj.customer === line.customer);
+            if (alreadyDone.length == 0) {
+                const encodedString = encodeURI(line.searchString);
+                // console.info(`https://www.google.com/search?q=${encodedString}&hl=en&gl=us`)
+                console.info("Opening new page for: " + line.name1)
+                const page = await browser.newPage();
+                await page.setCookie(...cookies);
+                await page.goto(`https://www.google.com/search?q=${encodedString}&hl=en&gl=us`, { waitUntil: 'networkidle2' });
+                var HTML = await page.content()
+                    .then(res => {
+                        if (res.includes("Our systems have detected unusual traffic from your computer network.")) {
+                            console.error("Problem!!!")
+                        }
+                        console.info("Got response for: " + line.name1)
+                        b1.increment();
+                        const $ = cheerio.load(res);
+
+                        // // test = $('br:contains("Our systems have detected unusual traffic from your computer network.  This page checks to see if it\'s really you sending the requests, and not a robot.")')
+                        test = $("#result-stats")
+                        if (test.text()) {
+                            console.info("No info")
+                            line.title = test.text()
+                            line.address = "Could not be found."
+                        }
+                        ($(".SPZz6b > h2 > span").text()) ? line.title = $(".SPZz6b > h2 > span").text() :
+                            
+                        ($(".LrzXr").text()) ? line.address = $(".LrzXr").text() :
+
+                        console.info("Found title : " + line.title)
+                        console.info("Found address : " + line.address)
+                        // customers.update(obj => obj.customer === line.customer, { title: line.title, address: line.address });
+                        // customers.update(obj => obj.customer === line.customer, { title: line.title, address: line.address });
+                        if (line.title) {
+                            found.set(line);
+                        }
+                        page.close()
+                    })
+            }
         },
-        { concurrency: 2 }
+        { concurrency: 5 }
     )
 }
 makeRequests(customerList)
-
-// function getTitle(row) {
-//     let encodedString = encodeURI(row.searchString);
-//     return axios
-//         .get(
-//             `https://www.google.com/search?q=${encodedString}&hl=en&gl=us`,
-//             params
-//         ).then(function ({ data }) {
-//             let $ = cheerio.load(data);
-//             row.title = $(".SPZz6b > h2 > span").text()
-//             row.address = $(".LrzXr").text()
-//             return row
-//         });
-// }
 
 
 
