@@ -1,33 +1,50 @@
 const cheerio = require("cheerio");
 const axios = require("axios");
-const csv = require('@fast-csv/parse');
-const AXIOS_OPTIONS = {
+
+const params = {
     headers: {
-        "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36"
     },
 };
 
-var dataArr = [];
+const customers = require('cakebase')("./test.json");
 
-csv.parseFile('./data.csv', { headers: true })
-    .on('error', error => console.error(error))
-    .on('data', row => getTitle(row))
-    .on('end', rowCount => {});
+async function Hello() {
+    let customerList = await customers.get(obj => obj.title === '');
+    customerList.forEach(customer => {
+        getTitle(customer).then((result) => {
+            users.update(obj => obj.customer === result.customer, { title: result.title, address: result.address });
+        })
+    });
+}
+
+Hello();
+
+// let newFile = file.map(customer =>{
+//     return getTitle(customer).then(test => {
+//         // return test
+//     })
+// })
+
+// Promise.all(newFile).then(completed => {
+//     fs.writeFile(fileName, JSON.stringify(completed, null, 2), function writeJSON(err) {
+//         if (err) return console.log(err);
+//     });
+// })
 
 function getTitle(row) {
     let encodedString = encodeURI(row.searchString);
     return axios
         .get(
             `https://www.google.com/search?q=${encodedString}&hl=en&gl=us`,
-            AXIOS_OPTIONS
-        )
-        .then(function ({ data }) {
+            params
+        ).then(function ({ data }) {
             let $ = cheerio.load(data);
-            let title = $(".SPZz6b > h2 > span").text();
-            console.info(row.customer + " " + title)
+            row.title = $(".SPZz6b > h2 > span").text()
+            row.address = $(".LrzXr").text()
+            return row
         });
 }
 
 
-// console.log(getOrganicResults(searchString));
+

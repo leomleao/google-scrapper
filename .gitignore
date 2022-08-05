@@ -1,3 +1,9 @@
+# Project specific
+data.csv
+data.json
+data.xlsx
+~$data.xlsx
+
 # Logs
 logs
 *.log
@@ -74,7 +80,6 @@ typings/
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
-data.csv
 
 # Next.js build output
 .next

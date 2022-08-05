@@ -10,8 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.27.2",
+    "cakebase": "^4.0.2",
     "cheerio": "^1.0.0-rc.12",
-    "fast-csv": "^4.3.6",
-    "google-search-scraper": "^0.1.0"
+    "retry-axios": "^3.0.0"
   }
 }
