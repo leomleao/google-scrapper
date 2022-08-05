@@ -10,8 +10,10 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.27.2",
+    "bluebird": "^3.7.2",
     "cakebase": "^4.0.2",
     "cheerio": "^1.0.0-rc.12",
+    "cli-progress": "^3.11.2",
     "retry-axios": "^3.0.0"
   }
 }
