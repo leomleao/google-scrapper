@@ -15,6 +15,9 @@
     "cheerio": "^1.0.0-rc.12",
     "cli-progress": "^3.11.2",
     "puppeteer": "^16.0.0",
-    "retry-axios": "^3.0.0"
+    "puppeteer-extra": "^3.3.4",
+    "puppeteer-extra-plugin-recaptcha": "^3.6.6",
+    "retry-axios": "^3.0.0",
+    "user-agents": "^1.0.1098"
   }
 }
