@@ -1,0 +1,17 @@
+{
+  "name": "google-scrapper",
+  "version": "1.0.0",
+  "description": "Scrap google for business data",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "cheerio": "^1.0.0-rc.12",
+    "fast-csv": "^4.3.6",
+    "google-search-scraper": "^0.1.0"
+  }
+}
